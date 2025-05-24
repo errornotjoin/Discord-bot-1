@@ -1,46 +1,59 @@
 import datetime
-import discord_items
-import admin_items
+
 import discord
 import sql_login
 
 ###
 
 my_sql_code = sql_login.db.cursor(buffered=True)
-banned_words = []
-Safe_account = []
-async def Create_an_report(Type_of_report,user_name1,message):
+async def Create_an_report(Type_of_report,user_name1,message,Table_number):
+    DataBase_table_names = ["user_report", "bot_report"]
+    Need_checks = ["Need Help", "Used Banned Word", "Used Banned Link"]
     the_time = datetime.datetime.now()
     chennels = discord_items.The_bot.get_channel(1330313688221220864)
-    if Type_of_report == "Banned Words":
-        sql_code = f"INSERT INTO bot_report (`name`, `Report`, `When_made`) VALUES (%s, %s, %s)"
-        val = (f"{user_name1}",f"{user_name1} has sent Banned Word: {message.content} into {message.channel.name} channel", f"{the_time.strftime('%Y-%m-%d')}")
-    elif Type_of_report == "Help Needed":
-        sql_code = f"INSERT INTO bot_report (`name`, `Report`, `When_made`) VALUES (%s, %s, %s)"
-        val = (f"{user_name1}",f"{user_name1} need help,  into <#{message.channel.name}> channel", f"{the_time.strftime('%Y-%m-%d')}")
-    elif Type_of_report == "Banned Linked":
-        sql_code = f"INSERT INTO bot_report (`name`, `Report`, `When_made`) VALUES (%s, %s, %s)"
-        val = (f"{user_name1}",f"{user_name1} has sent Banned Linked: {message.content} into <#{message.channel.name}> channel", f"{the_time.strftime('%Y-%m-%d')}")
-    my_sql_code.execute(sql_code,val)
-    await chennels.send(f"REPORT: {message.author.mention} Has Sent {message.content} In <#{message.channel.id}> channel at {the_time.strftime('%Y-%m-%d')}")
+
+    sql_code = f"SELECT * FROM user_report WHERE user_name = '{user_name1}' limit 1 DESC"
+    my_sql_code.execute(sql_code)
+    for x in my_sql_code:
+        Total_banned_words = x[2]
+        Total_banned_links = x[3]
+        Total_help_words = x[4]
+
+    if Type_of_report == "Need Help":    
+        Total_help_words = Total_help_words + 1
+    elif Type_of_report == "Used Banned Word":
+        Total_banned_words = Total_banned_words + 1
+    elif Type_of_report == "Used Banned Link":
+        Total_banned_links = Total_banned_links + 1
+    else:
+        await chennels.send("An Error Has Happened, Please Contact An Admin")
+        return
+    for x in range(len(DataBase_table_names)):
+        if DataBase_table_names[x] == "user_report":
+            sql_code = f"INSERT INTO user_report (`user_name`, `Total_banned_words`, `Total_banned_links`, `Total_help_words`, `When_updated`) VALUES (%s, %s, %s, %s, %s)"
+            val = (f"{user_name1}", f"{Total_banned_words }", f"{Total_banned_links}", f"{Total_help_words}", f"{the_time.strftime('%Y-%m-%d')}")
+            my_sql_code.execute(sql_code, val)
+
+        elif DataBase_table_names[x] == "bot_report":
+            sql_code = f"INSERT INTO bot_report (`Name`, `Report`, `When_made`) VALUES (%s, %s, %s)"
+            val = (f"{user_name1}", f"Message: {message.content}", f"{the_time.strftime('%Y-%m-%d')}")
+            my_sql_code.execute(sql_code, val)
+            await chennels.send(f"Report:\n {user_name1.mention} has used a banned word in channel: {message.channel.name} \n at {the_time.strftime('%X')}")
+            
+
 
 
 
 @discord_items.The_bot.event
 async def on_ready():
-    my_sql_code = sql_login.db.cursor(buffered=True)
     chennels = discord_items.The_bot.get_channel(1330313688221220864)
     await chennels.send("The The Great Eye Of ErrorNotJoin Is Online ✔ ")
-    sql_code = "SELECT User_name FROM admin_accounts"
-    my_sql_code.execute(sql_code)
-    for x in my_sql_code:
-        new_x = str(x).replace("(", "").replace(")", "").replace(".", "").replace("[", "").replace("]", "").replace("'", "'").replace(".", "'")
-        Safe_account.append(new_x)
 
 
 
 @discord_items.The_bot.event
 async def on_message(message):
+    Table_number = 0 
     list_of_help_words = []
     the_time = datetime.datetime.now()
     my_sql_code = sql_login.db.cursor(buffered=True)
@@ -64,6 +77,10 @@ async def on_message(message):
         x = str(x).replace("(", "").replace(")", "").replace(".", "").replace("[", "").replace("]", "").replace("'", "").replace(",", "")
         print(x.lower())
         if x.lower() in message.content.lower():
+          sql_code = f"SELECT user_name FROM user WHERE user_name == `{message.author}` "
+          my_sql_code.execute(sql_code)
+          for x in my_sql_code:
+              x = str(x).replace("(", "").replace(")", "").replace(".", "").replace("[", "").replace("]", "").replace("'", "").replace(",", "")
           mess = message
           user_account = message.author
           await message.delete()
@@ -106,6 +123,7 @@ async def on_member_join(member):
 
     Sql_code = "UPDATE `total` SET `Number` = `Number` + 1  WHERE `ID` = 1";
     my_sql_code.execute(Sql_code)
+    
 @discord_items.The_bot.event
 async def on_member_remove(member):
     chennels = discord_items.The_bot.get_channel(1330313688221220864)
@@ -119,18 +137,9 @@ async def on_member_remove(member):
 
     Sql_code = "UPDATE `total` SET `Number` = `Number` - 1  WHERE `ID` = 1";
     my_sql_code.execute(Sql_code)
-@discord_items.The_bot.command
-async def User_report(ctx):
-    admin_item_role = discord_items.utils.get(ctx.guild.roles, name="admin")
-    mods_item_role = discord_items.utils.get(ctx.guild.roles, name="mods")
-    if ctx.author.roles == admin_item_role:
-       await ctx.send("Create The Report for the user")
-    elif ctx.author.roles == mods_item_role:
-       await ctx.send("Plaze Contack AM admin to create a report for ypu ")
-    else:
-       await ctx.send("You Don't have the correct Rolse to create an Report ")
 
-#this send message to people when it get the code
+
+
 
 
 

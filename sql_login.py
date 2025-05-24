@@ -4,6 +4,7 @@ import discord_items
 error_has_happen = False
 
 def Error(error_has_happen):
+  
   if error_has_happen == True:
    @discord_items.The_bot.event
    async def on_ready():
