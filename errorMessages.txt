@@ -6,3 +6,8 @@ Unable to Connect To The Server, on 2025-05-16 14:40:15.547288
 Unable to Connect To The Server, on 2025-05-22 16:14:46.256986
 Unable to Connect To The Server, on 2025-05-22 19:52:03.351883
 Unable to Connect To The Server, on 2025-05-30 13:31:11.849593
+Unable to Connect To The Server, on 2025-05-30 13:37:44.165088
+Unable to Connect To The Server, on 2025-05-30 13:38:01.055890
+Unable to Connect To The Server, on 2025-05-30 13:40:48.543745
+Unable to Connect To The Server, on 2025-05-30 13:42:36.276776
+Unable to Connect To The Server, on 2025-05-30 14:15:06.584625
