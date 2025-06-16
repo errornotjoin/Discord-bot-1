@@ -87,9 +87,11 @@ async def on_message(message):
             my_sql_code.execute(sql_code)
             for y in my_sql_code:
                 Remove_items = str(y).replace(",", "").replace("[", "").replace("]", "").replace("'", "").replace("(", "").replace(")", "")
-                if Remove_items in message.content:
+                if Remove_items.lower() in message.content.lower():
                     print("User has Enter That Has Been Banned From The Server")
                     await Create_an_report(list_of_tables[x], message)
+                elif Remove_items not in message.content.lower():
+                    print("Cheeking for something")
     except:
         await Errors("Error With SQL", 77, 88)
     
@@ -107,7 +109,7 @@ async def on_member_join(member):
    else:
         print("User Already In The Database")
     
-    
+
 @the_Discord_bot.event
 async def on_member_remove(member):
 #this need to be redo
